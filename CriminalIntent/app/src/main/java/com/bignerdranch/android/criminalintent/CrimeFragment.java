@@ -45,11 +45,13 @@ public class CrimeFragment extends Fragment {
 
     private static final String DIALOG_DATE = "DialogDate";
     private static final String DIALOG_TIME = "DialogTime";
+    private static final String DIALOG_PICTURE = "DialogPicture";
 
     private static final int REQUEST_DATE = 0;
     private static final int REQUEST_TIME = 1;
     private static final int REQUEST_CONTACT = 2;
     private static final int REQUEST_PHOTO = 3;
+    private static final int REQUEST_ENLARGED_PHOTO = 4;
 
 
     private Crime mCrime;
@@ -203,7 +205,24 @@ public class CrimeFragment extends Fragment {
                 startActivityForResult(captureImage, REQUEST_PHOTO);
             }
         });
+
+
         mPhotoView = (ImageView) v.findViewById(R.id.crime_photo);
+        mPhotoView.setOnClickListener(new View.OnClickListener(){
+            @Override
+            public void onClick(View v){
+                if (mPhotoFile == null || !mPhotoFile.exists()){
+                    return;
+                }
+
+                FragmentManager manager = getFragmentManager();
+                PictureFragment dialog =
+                        PictureFragment.newInstance(mPhotoFile.getPath());
+
+                dialog.setTargetFragment(CrimeFragment.this, REQUEST_ENLARGED_PHOTO);
+                dialog.show(manager, DIALOG_PICTURE);
+            }
+        });
         updatePhotoView();
 
         return v;
@@ -219,7 +238,6 @@ public class CrimeFragment extends Fragment {
     @Override public boolean onOptionsItemSelected(MenuItem item){
         switch(item.getItemId()){
             case R.id.delete_crime:
-                //TODO implement this
                 CrimeLab.get(getActivity()).deleteCrime(mCrime);
                 getActivity().finish();
                 return true;
