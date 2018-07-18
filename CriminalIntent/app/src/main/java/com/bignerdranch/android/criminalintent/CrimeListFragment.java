@@ -23,6 +23,7 @@ import java.util.List;
 public class CrimeListFragment extends Fragment {
 
     private static final String SAVED_SUBTITLE_VISIBLE = "subtitle";
+    private View mView;
     private RecyclerView mCrimeRecyclerView;
     private CrimeAdapter mAdapter;
     private boolean mSubtitleVisible;
@@ -37,9 +38,9 @@ public class CrimeListFragment extends Fragment {
     @Override
     public View onCreateView(LayoutInflater inflater, ViewGroup container,
                              Bundle savedInstanceState){
-        View view = inflater.inflate(R.layout.fragment_crime_list, container, false);
+        mView = inflater.inflate(R.layout.fragment_crime_list, container, false);
 
-        mCrimeRecyclerView = (RecyclerView) view.findViewById(R.id.crime_recycler_view);
+        mCrimeRecyclerView = (RecyclerView) mView.findViewById(R.id.crime_recycler_view);
         mCrimeRecyclerView.setLayoutManager(new LinearLayoutManager(getActivity()));
 
         if (savedInstanceState != null){
@@ -47,7 +48,7 @@ public class CrimeListFragment extends Fragment {
         }
 
         updateUI();
-        return view;
+        return mView;
     }
 
     @Override
@@ -97,7 +98,8 @@ public class CrimeListFragment extends Fragment {
     private void updateSubtitle(){
         CrimeLab crimeLab = CrimeLab.get(getActivity());
         int crimeCount = crimeLab.getCrimes().size();
-        String subtitle = getString(R.string.subtitle_format, crimeCount);
+        String subtitle = getResources().getQuantityString(
+                R.plurals.subtitle_plural, crimeCount, crimeCount);
 
         if (!mSubtitleVisible){
             subtitle = null;
@@ -110,6 +112,9 @@ public class CrimeListFragment extends Fragment {
     private void updateUI(){
         CrimeLab crimeLab = CrimeLab.get(getActivity());
         List<Crime> crimes = crimeLab.getCrimes();
+
+        mView.findViewById(R.id.no_crimes_message).setVisibility(
+                crimes.size() == 0 ? View.VISIBLE : View.GONE);
 
         if (mAdapter == null) {
             mAdapter = new CrimeAdapter(crimes);
