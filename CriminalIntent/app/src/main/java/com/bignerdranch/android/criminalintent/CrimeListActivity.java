@@ -6,9 +6,11 @@ import android.support.v4.app.Fragment;
 import android.util.Log;
 import android.view.View;
 
+import java.util.UUID;
+
 
 public class CrimeListActivity extends SingleFragmentActivity implements
-        CrimeListFragment.Callbacks, CrimeFragment.Callbacks {
+        CrimeListFragment.Callbacks, CrimeListFragment.onDeleteCrimeListener, CrimeFragment.Callbacks {
 
     @Override public void onCreate(Bundle savedInstanceState){
         super.onCreate(savedInstanceState);
@@ -48,6 +50,24 @@ public class CrimeListActivity extends SingleFragmentActivity implements
         CrimeListFragment listFragment = (CrimeListFragment) getSupportFragmentManager()
                 .findFragmentById(R.id.fragment_container);
         listFragment.updateUI();
+    }
+
+    @Override
+    public void onCrimeIdSelected(UUID crimeId){
+        CrimeFragment crimeFragment = (CrimeFragment) getSupportFragmentManager()
+                .findFragmentById(R.id.detail_fragment_container);
+
+        CrimeListFragment listFragment = (CrimeListFragment) getSupportFragmentManager()
+                .findFragmentById(R.id.fragment_container);
+
+        Crime crime = CrimeLab.get(CrimeListActivity.this).getCrime(crimeId);
+        CrimeLab.get(CrimeListActivity.this).deleteCrime(crime);
+
+        listFragment.updateUI();
+
+        if (crimeFragment != null){
+            findViewById(R.id.detail_fragment_container).setVisibility(View.GONE);
+        }
     }
 
     @Override

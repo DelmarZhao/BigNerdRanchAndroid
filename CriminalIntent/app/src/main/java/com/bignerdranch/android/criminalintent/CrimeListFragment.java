@@ -1,13 +1,21 @@
 package com.bignerdranch.android.criminalintent;
 
+import android.content.ClipData;
 import android.content.Context;
 import android.content.Intent;
+import android.content.res.Resources;
+import android.graphics.Canvas;
+import android.graphics.Paint;
+import android.graphics.RectF;
+import android.graphics.drawable.Drawable;
 import android.os.Bundle;
 import android.support.annotation.NonNull;
 import android.support.v4.app.Fragment;
+import android.support.v4.content.ContextCompat;
 import android.support.v7.app.AppCompatActivity;
 import android.support.v7.widget.LinearLayoutManager;
 import android.support.v7.widget.RecyclerView;
+import android.support.v7.widget.helper.ItemTouchHelper;
 import android.view.LayoutInflater;
 import android.view.Menu;
 import android.view.MenuInflater;
@@ -19,6 +27,9 @@ import android.widget.TextView;
 import android.widget.Toast;
 
 import java.util.List;
+import java.util.UUID;
+
+import static android.support.v7.widget.helper.ItemTouchHelper.ACTION_STATE_SWIPE;
 
 
 public class CrimeListFragment extends Fragment {
@@ -29,18 +40,25 @@ public class CrimeListFragment extends Fragment {
     private CrimeAdapter mAdapter;
     private boolean mSubtitleVisible;
     private Callbacks mCallbacks;
+    private onDeleteCrimeListener mDeleteCallback;
+
 
     /**
-     * Required interface for hosting activities
+     * Required interfaces for hosting activities
      */
     public interface Callbacks {
         void onCrimeSelected(Crime crime);
+    }
+
+    public interface onDeleteCrimeListener{
+        void onCrimeIdSelected(UUID crimeIDd);
     }
 
     @Override
     public void onAttach(Context context){
         super.onAttach(context);
         mCallbacks = (Callbacks) context;
+        mDeleteCallback = (onDeleteCrimeListener) context;
     }
 
 
@@ -61,7 +79,7 @@ public class CrimeListFragment extends Fragment {
         if (savedInstanceState != null){
             mSubtitleVisible = savedInstanceState.getBoolean(SAVED_SUBTITLE_VISIBLE);
         }
-
+        setCrimeRecyclerViewItemTouchListener();
         updateUI();
         return mView;
     }
@@ -82,6 +100,7 @@ public class CrimeListFragment extends Fragment {
     public void onDetach() {
         super.onDetach();
         mCallbacks = null;
+        mDeleteCallback = null;
     }
 
     @Override
@@ -151,6 +170,29 @@ public class CrimeListFragment extends Fragment {
 
     }
 
+    public void setCrimeRecyclerViewItemTouchListener(){
+        ItemTouchHelper.SimpleCallback itemTouchCallback = new ItemTouchHelper
+                .SimpleCallback(0, ItemTouchHelper.LEFT) {
+
+            @Override
+            public boolean onMove(RecyclerView recyclerView, RecyclerView.ViewHolder viewHolder,
+                                  RecyclerView.ViewHolder target) {
+                return false;
+            }
+
+            @Override
+            public void onSwiped(RecyclerView.ViewHolder viewHolder, int direction) {
+                int position = viewHolder.getAdapterPosition();
+                Crime crime = mAdapter.mCrimes.get(position);
+                mDeleteCallback.onCrimeIdSelected(crime.getId());
+
+            }
+        };
+
+        ItemTouchHelper itemTouchHelper = new ItemTouchHelper(itemTouchCallback);
+        itemTouchHelper.attachToRecyclerView(mCrimeRecyclerView);
+    }
+
     private class CrimeHolder extends RecyclerView.ViewHolder implements View.OnClickListener{
 
         private TextView mTitleTextView;
@@ -206,8 +248,10 @@ public class CrimeListFragment extends Fragment {
             return mCrimes.size();
         }
 
+
         public void setCrimes(List<Crime> crimes){
             mCrimes = crimes;
         }
+
     }
 }
